@@ -22,7 +22,7 @@ class Agent {
             this.boundary = this.boundary.getNewBoundary(x, y);
         }
 
-        let gameState = new GameState(board, deepcopy(this.boundary), x, y, 'x');
+        let gameState = new GameState(board, this.boundary, x, y, 'x');
 
         let result = this.search(0, gameState, 0, -1000000, 1000000);
 
@@ -40,7 +40,7 @@ class Agent {
             if (noMinAgent == 0) {
                 return this.maxValue(gameState, depth, alpha, beta);
             } else {
-                // return this.minValue(gameState, depth, alpha, beta);
+                return this.minValue(gameState, depth, alpha, beta);
             }
         }
     }
@@ -49,23 +49,26 @@ class Agent {
         let v = -1000000;
 
         let possibleMoves = gameState.generateSuccessors('o');
+        // console.log(possibleMoves);
         let ret = null;
 
         for (let i = 0; i < possibleMoves.length; i++) {
 
-            let state = possibleMoves[i];
-            let analyzeMove = this.checkMove(state);
+            let gstate = possibleMoves[i];
+
+            let analyzeMove = this.checkMove(gstate);
 
             if (analyzeMove == 1) {
-                state.score = 2000;
-                return state;
+                gstate.score = 2000;
+                return gstate;
             }
 
-            let newState = this.search(depth, state, 1, alpha, beta);
-            state.score = newState.score;
+            let newState = this.search(depth, gstate, 1, alpha, beta);
+            console.log(newState);
+            gstate.score = newState.score;
             if (newState.score != null && newState.score > v) {
                 v = newState.score;
-                ret = state;
+                ret = gstate;
 
                 if (v > beta) {
                     return ret;
@@ -83,10 +86,46 @@ class Agent {
         return ret;
     }
 
+    minValue(gameState, depth, alpha, beta) {
+        let v = 1000000;
+        let possibleMoves = gameState.generateSuccessors('x');
+        let ret = null;
+
+        for (let i = 0; i < possibleMoves.length; i++) {
+            let state = possibleMoves[i];
+            let analyzeMove = this.checkMove(state);
+
+            if (analyzeMove == 2) {
+                state.score = -2000;
+                return state;
+            }
+
+            let newState = this.search(depth + 1, state, 0, alpha, beta);
+            state.score = newState.score;
+            if (newState.score != null && newState.score < v) {
+                v = newState.score;
+
+                ret = state;
+
+                if (v < alpha) {
+                    return ret;
+                }
+                beta = Math.min(beta, v);
+            }
+        }
+        if (ret == null) {
+            console.log('ret min is null');
+            for (let i = 0; i < possibleMoves.length; i++) {
+                console.log(possibleMoves[i].score);
+            }
+        }
+        return ret;
+    }
+
     evaluate(gameState) {
 
         let evaluator = new Evaluator(this.symbol);
-        new StateVisitor().travers(gameState.board, evaluator);
+        new VisitBoard().travers(gameState.board, evaluator);
 
         let initialScore = 0;
         if (evaluator.opponentOpenThree >= 2 ||

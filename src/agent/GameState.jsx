@@ -1,4 +1,5 @@
 'use strict';
+import Boundary from './Boundary.jsx';
 // bot representation of the game
 
 class GameState {
@@ -11,7 +12,7 @@ class GameState {
       y: y,
       symbol: symbol
     };
-    this.score = null;
+    this.score = 1;
   }
 
   /**
@@ -39,6 +40,7 @@ class GameState {
           let newBoundary = this.boundary.getNewBoundary(i, j);
           let newGameState = new GameState(newBoard, newBoundary, i, j, symbol);
 
+          // console.log(newGameState);
           successors.push(newGameState);
         }
       }
